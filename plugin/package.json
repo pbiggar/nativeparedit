@@ -1,11 +1,11 @@
 {
-  "name": "native-paredit",
-  "main": "./lib/native-paredit",
-  "version": "0.0.0",
-  "description": "A short description of your package",
+  "name": "nativeparedit",
+  "main": "./lib/nativeparedit",
+  "version": "0.0.1",
+  "description": "Paredit for atom, built natively",
   "keywords": [
   ],
-  "repository": "https://github.com/atom/native-paredit",
+  "repository": "https://github.com/atom/nativeparedit",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"

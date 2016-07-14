@@ -1,0 +1,34 @@
+# Keybindings require three things to be fully defined: A selector that is
+# matched against the focused element, the keystroke and the command to
+# execute.
+#
+# Below is a basic keybinding which registers on all platforms by applying to
+# the root workspace element.
+
+# For more detailed documentation see
+# https://atom.io/docs/latest/behind-atom-keymaps-in-depth
+'atom-workspace':
+  # '(': 'native-paredit:open-round'
+  # ')': 'native-paredit:close-round'
+	# 'ctrl-)': 'native-paredit:close-round-and-newline'
+	# '[': 'native-paredit:open-square'
+  # ']': 'native-paredit:close-square'
+	'ctrl-alt-x': 'nativeparedit:doublequote'
+  # 'ctrl-o': 'native-paredit:newline'
+  # 'ctrl-o': 'native-paredit:forward-delete'
+  # 'ctrl-o': 'native-paredit:backward-delete'
+  # 'ctrl-o': 'native-paredit:kill'
+  # 'ctrl-o': 'native-paredit:kill-word'
+  # 'ctrl-o': 'native-paredit:backwards-kill-word'
+  # 'ctrl-o': 'native-paredit:forward'
+  # 'ctrl-o': 'native-paredit:backward'
+  # 'ctrl-o': 'native-paredit:wrap-round'
+  # 'ctrl-o': 'native-paredit:splice-sexp'
+  # 'ctrl-o': 'native-paredit:splice-sexp-killing-backwards'
+  # 'ctrl-o': 'native-paredit:splice-sexp-killing-forward'
+  # 'ctrl-o': 'native-paredit:forward-slurp-sexp'
+  # 'ctrl-o': 'native-paredit:forward-barf-sexp'
+  # 'ctrl-o': 'native-paredit:backward-slurp-sexp'
+  # 'ctrl-o': 'native-paredit:backward-barf-sexp'
+  # 'ctrl-o': 'native-paredit:split-sexp'
+  # 'ctrl-o': 'native-paredit:join-sexp'

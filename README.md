@@ -1,14 +1,17 @@
 # native-paredit
 
-I am a atom plugin written in clojurescript! Pretty nifty, huh? 😄
+Paredit, written natively for atom.
 
-## Development
+## Goals
 
-If you want to export a function to atom for use with atom commands, make sure to add them to `dev/build.clj` like so:
-```
-:foo 'native-paredit.core/foo
-:bar 'native-paredit.core/bar
-```
+I don't like lisp-paredit:
+- problem: it doesn't work exactly like emacs Paredit
+ - solution: native-paredit will work exactly like emacs paredit
+- problem: it's unclear whether it's the fault of lisp-paredit or paredit.js, on which it is based
+ - solution: don't have an awkward interface with a 3rdparty, unmaintained library to actually implement the paredit functionality
+- problem: lisp-paredit behaves weirdly, or just breaks, when the file isn't structured
+ - solution: try and establish context from current location, and don't try to parse the whole file
+
 
 ## Compiling and running
 

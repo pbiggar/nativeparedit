@@ -1,16 +1,16 @@
 (ns nativeparedit.core
-  (:require [cljs.nodejs :as node]))
+  (:require [cljs.nodejs :as nodejs]))
 
-;; reference to atom shell API
-(def ashell (node/require "atom"))
+(nodejs/enable-util-print!)
 
-;; js/atom is not the same as require 'atom'.
+
 (def commands (.-commands js/atom))
 
-
-
+(defn active-editor []
+  (-> js/atom .workspace .getActiveEditor))
 
 (defn open-round []
+  (insert)
   nil)
 
 (defn close-round []
@@ -19,15 +19,41 @@
 (defn close-round-and-newline []
   nil)
 
+
 (defn open-square []
   nil)
 
 (defn close-square []
   nil)
 
-(defn doublequote []
+(def dq-test
+  [["\"asd | asdas\"" "\"asd \"| asdas\""]
+   ["\"|\"" "\"\"|"]
+   ["\"open string with no close|" "\"open string with no close\"|"]
+   ["(a b c |d e)" "(a b c \"|\" d e)"]
+   ["(a b c| d e)" "(a b c \"|\" d e)"]
+   ["|\"\"" "\"|\""]])
+
+(defn in-string? [cursor]
+  (let [scope (.getScopeDescriptor ed)]
+    (.log js/console scope)
+    false))
+
+(defn surrounding-chars [cursor]
+  "ad")
+
+(defn doublequote [_]
   (.log js/console "doublequote")
-  nil)
+  (let [ed (getActiveEditor)
+        cursor (.getLastCursor ed)
+        str? (inString? cursor)
+        [prev next] (surroundingChars cursor)]
+
+    (cond ed
+      (= next "\"") (moveCursorForward ed 1)
+      str? (do (insert ed "\"") (moveCursorForward ed 1))
+      (= next " " (do insert ed " \"\"") (moveCursorForward ed 2))
+      :else (do (insert ed "\"\" ") (moveCursorForward ed 1)))))
 
 (defn newline []
   nil)
@@ -84,23 +110,22 @@
   nil)
 
 
-
-
-
-;; live-reload
-;; calls stop before hotswapping code
-;; then start after all code is loaded
-;; the return value of stop will be the argument to start
-(defn stop []
-  nil)
-
-(defn start [state]
-  nil)
-
-
 (defn activate [state]
-  (.add commands "atom-workspace" "nativeparedit:doublequote", doublequote)
-  (.log js/console "Hello World from {{raw-name}}"))
+  (.log js/console "Activating paredit")
+  (.add commands "atom-workspace" "nativeparedit:doublequote", doublequote))
 
 (defn deactivate [state]
-  (.log js/console "Deactivating from {{raw-name}}"))
+  (.log js/console "Deactivating from paredit"))
+
+
+
+(set! js/module.exports
+  (js-obj "activate" activate
+          "deactivate" deactivate))
+
+(set! js/global.nativeparedit
+      (js-obj "core" nativeparedit.core
+              "test_core" nativeparedit.test-core))
+
+;; noop - needed for :nodejs CLJS build
+(set! *main-cli-fn* (constantly nil))

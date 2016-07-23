@@ -118,14 +118,10 @@
   (.log js/console "Deactivating from paredit"))
 
 
-
 (set! js/module.exports
   (js-obj "activate" activate
-          "deactivate" deactivate))
-
-(set! js/global.nativeparedit
-      (js-obj "core" nativeparedit.core
-              "test_core" nativeparedit.test-core))
+          "deactivate" deactivate
+          "run_tests" #(nativeparedit.test-core/run-tests)))
 
 ;; noop - needed for :nodejs CLJS build
 (set! *main-cli-fn* (constantly nil))

@@ -1,18 +1,45 @@
-require "../plugin/lib/nativeparedit"
+nativeparedit = require "../plugin/lib/nativeparedit"
 
-describe "nativeparedit should have loaded`", ->
-  it "should have the right shape", ->
-    expect(typeof nativeparedit).toBe "object"
-    expect(typeof nativeparedit.core.doublequote).toBe "function"
+jasmine.VERBOSE = true
+nativeparedit.run_tests()
+# env = jasmine.getEnv()
+# r = env.reporter
+# runner = env.currentRunner()
+#
+# suite = new jasmine.Suite(env, "ASDAS", [], env.currentSuite)
+# if env.currentSuite
+#   env.currentSuite.add(suite)
+# else
+#   runner.addSuite(suite)
+# env.currentSuite = suite
+#
+# spec = new jasmine.Spec(env, suite, "some spec description")
+# suite.add(spec)
+#
+#
+# runner.addSuite(suite)
+#
+# describe("asdas", -> it("asdasdasd", -> expect(1).toEqual(1)))
+#
+#
+# spec.results().log(["msg 1", "msg 2"])
+# spec.results().addResult(new jasmine.ExpectationResult({passed: false, expected: "asd", actual: "fff"}))
+# spec.finish()
+#
+# suite.finish()
 
-# [(ns test-runner (:require [cljs.test]
-#  [nativeparedit.test-core]))
-#   (clojure.core/defmethod cljs.test/report
-#    [:cljs.test/default :end-run-tests]
-#     [m__7165__auto__]
-#      (if (cljs.test/successful? m__7165__auto__)
-#       (js/process.exit 0)
-#        (js/process.exit 1)))
-#         (cljs.test/run-tests
-#          (cljs.test/empty-env)
-#          (quote nativeparedit.test-core))]
+# descibe ("testName")
+
+# TODO: if it errors, call fail. Otherwise add a bunch of expectationresults or messageresults
+
+
+# r.log("asdasd")
+# r.reportRunnerStarting(runner)
+# r.reportSpecStarting()
+# r.reportSpecResults(spec)
+# r.reportRunnerResults(runner)
+
+# describe("asdads", ->
+#   it("asdasdathing", ->
+#     expect(1).toEqual 1
+#     ))

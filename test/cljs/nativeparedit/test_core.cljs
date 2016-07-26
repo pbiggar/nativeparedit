@@ -73,6 +73,17 @@
   (clear-results!))
 
 
+;;; Take cljs.test structures and get them into jasmine.
+;;; Creates a suite (using `describe`) for each namespace,
+;;; and a spec (using `it`) for each test var.
+;;;
+;;; TODO: namespaces can nest, so we can handle `testing` this way too.
+;;;
+;; You would think that we could just create the data structures in some form
+;;; jasmine expects and pass them to it. Actually, the jasmine code is super
+;;; convaluated, and you end up just reimplementing it. Whereas calling `describe`
+;;; and `it` directly works quite well.
+
 
 (defn create-results [results]
   (let [spec (-> js/jasmine .getEnv .-currentSpec)]

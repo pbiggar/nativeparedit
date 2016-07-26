@@ -7,6 +7,7 @@
   (is (= (+ 1 1) 2)))
 
 (deftest has-failing-test
+  (is (= (+ 1 1) 3))
   (is (= (+ 1 1) 2))
   (is (= (+ 4 5) 6)))
 
@@ -69,28 +70,32 @@
 (defn add-spec! [spec]
   (swap! specs conj {:spec spec :results @results}))
 
-
+;; TODO: spec.endedAt
 
 ;; creating
 (defn create-results [results]
-  (println "creating results")
   (doall (for [{:keys [result type]} results]
-           (do
-            (println "result: ")
-            (println result)
-            (println type)
-            (condp = type
-                   :error (let [spec (-> js/jasmine .getEnv .-currentSpec) ]
-                            (.fail spec {:message "asdas" :stack []}))
-                   :pass []
-                   :fail (let [actual (str (:actual result))
-                               expected (str (:expected result))]
-                           (-> actual js/expect (.toEqual expected))))))))
+           (let [actual (:actual result)
+                 expected (:expected result)
+                 spec (-> js/jasmine .getEnv .-currentSpec)]
+            ;  (println (str "result: " result))
+            ;  (println (str "type: " type))
+            ;  (println (str "actual " actual))
+            ;  (println (str "expected" expected))
+             (condp = type
+                    :error (let [e result]
+                             (set! js/ads (clj->js e))
+                             (set! js/ads2 actual)
+                             (.fail spec {:message (.-message actual)
+                                          :fileName (:file e)
+                                          :line (:line e)
+                                          :a (comment -> actual/rawStack)}))
+                    :pass (-> expected js/expect (.toEqual expected))
+                    :fail (-> (str actual) js/expect (.toEqual (str expected))))))))
 
-(defn create-all-specs [spec]
+(defn create-all-specs []
   (doseq [s @specs]
-    (println "creating spec")
-    (js/it (-> s :var str) #(create-results (:results s)))))
+    (js/it (->> s :spec meta :name (str "should pass: ")) #(create-results (:results s)))))
 
 (defn create-suite! [suite]
   (js/describe (-> :ns suite str) create-all-specs))
@@ -99,26 +104,21 @@
 
 (defmethod cljs.test/report [:cljs.test/default :fail] [m]
   (println "fail")
+  (println m)
   (add-result! :fail m))
 
 (defmethod cljs.test/report [:cljs.test/default :pass] [m]
-  (println "pass")
   (add-result! :pass m))
 
 (defmethod cljs.test/report [:cljs.test/default :error] [m]
-  (println "error")
   (add-result! :error m))
 
 (defmethod cljs.test/report [:cljs.test/default :end-test-var] [m]
-  (println (str "adding spec" m))
   (add-spec! (:var m))
-  (println "clearing test data")
   (clear-test-data!))
 
 (defmethod cljs.test/report [:cljs.test/default :end-test-ns] [m]
-  (println "creating suite")
   (create-suite! m)
-  (println "clearing suite data")
   (clear-suite-data!))
 
 

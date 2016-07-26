@@ -2,6 +2,13 @@
   (:require [cljs.test :refer-macros [deftest is testing run-tests] :as test]
             [nativeparedit.core :as np]))
 
+(set! js/saved_clj (clj->js []))
+(set! js/saved (clj->js []))
+
+(defn save [val]
+  (.push js/saved_clj val)
+  (.push js/saved (clj->js val))
+  val)
 
 (deftest passing-test
   (is (= (+ 1 1) 2)))
@@ -15,7 +22,6 @@
   (is
    (throw (js/Error. "bug!"))))
 ;
-
 
 
 (defn split-test-string [s]
@@ -43,100 +49,71 @@
 
 
 
-
 ;;;;;;;;;;;;;;;;;;;;
 ;;; test setup
 ;;;;;;;;;;;;;;;;;;;;
-
-(def ^:dynamic test-callback nil)
-
-(defmethod cljs.test/report [:cljs.test/default :end-run-tests] [m]
-  (when test-callback (test-callback m)))
 
 ;; todo store it in the test env
 (def results (atom (list)))
 (def specs (atom (list)))
 
 
-(defn clear-test-data! []
+(defn clear-results! []
   (swap! results (fn [_] (list))))
 
-(defn clear-suite-data! []
+(defn clear-specs! []
   (swap! specs (fn [_] (list))))
 
-(defn add-result! [type result]
-  (swap! results conj {:type type :result result}))
+(defn add-result! [result]
+  (swap! results conj
+         (js/jasmine.ExpectationResult. (clj->js result))))
 
 (defn add-spec! [spec]
-  (swap! specs conj {:spec spec :results @results}))
-
-;; TODO: spec.endedAt
-
-
-(set! js/saved_clj (clj->js []))
-(set! js/saved (clj->js []))
-
-(defn save [val]
-  (.push js/saved_clj val)
-  (.push js/saved (clj->js val))
-  val)
+  (swap! specs conj {:spec spec :results @results})
+  (clear-results!))
 
 
-;; creating
+
 (defn create-results [results]
   (let [spec (-> js/jasmine .getEnv .-currentSpec)]
-    (doseq [{:keys [result type]} results]
-      (let [actual (:actual result)
-            expected (:expected result)
-            result (condp = type
-                          :error (js/jasmine.ExpectationResult.
-                                  (clj->js {:passed false
-                                            :fileName (:file result)
-                                            :message (.-message actual)
-                                            :trace {:stack (.-stack actual)}}))
-                          :fail (js/jasmine.ExpectationResult.
-                                 (clj->js {:passed false
-                                           :line (:line result)
-                                           :expected (str expected)
-                                           :actual (str actual)
-                                           :trace {:stack nil}
-                                           :message (str "Expected " expected ", but got " actual)}))
-                          :pass (js/jasmine.ExpectationResult.
-                                 (clj->js {:passed true
-                                           :expected (str expected)
-                                           :actual (str actual)
-                                           :trace {:stack nil}
-                                           :message "Passed"}))
-                          )]
-        (-> spec .-results_ (.addResult result))))))
+    (doseq [result results]
+      (-> spec .-results_ (.addResult result)))))
 
 (defn create-all-specs []
   (doseq [s @specs]
     (js/it (->> s :spec meta :name (str " should pass: ")) #(create-results (:results s)))))
 
 (defn create-suite! [suite]
-  (js/describe (-> :ns suite str) create-all-specs))
-
+  (js/describe (-> :ns suite str) create-all-specs)
+  (clear-specs!))
 
 
 (defmethod cljs.test/report [:cljs.test/default :fail] [m]
-  (println "fail")
-  (println m)
-  (add-result! :fail m))
+  (add-result! {:passed false
+                :line (:line m)
+                :expected (-> m :expected str)
+                :actual (-> m :actual str)
+                :trace {:stack nil}
+                :message (str "Expected " (:expected m) ", but got " (:actual m))}))
 
 (defmethod cljs.test/report [:cljs.test/default :pass] [m]
-  (add-result! :pass m))
+  (add-result! {:passed true
+                :expected (-> m :expected str)
+                :actual (-> m :actual str)
+                :trace {:stack nil}
+                :message "Passed"}))
 
 (defmethod cljs.test/report [:cljs.test/default :error] [m]
-  (add-result! :error m))
+  (add-result! {:passed false
+                :fileName (:file m)
+                :message (-> m :actual .-message)
+                :trace {:stack (-> m :actual .-stack)}}))
 
 (defmethod cljs.test/report [:cljs.test/default :end-test-var] [m]
-  (add-spec! (:var m))
-  (clear-test-data!))
+  (add-spec! (:var m)))
 
 (defmethod cljs.test/report [:cljs.test/default :end-test-ns] [m]
-  (create-suite! m)
-  (clear-suite-data!))
+  (create-suite! m))
 
 
 ; (defmethod cljs.test/report [:cljs.test/default :fail] [m]

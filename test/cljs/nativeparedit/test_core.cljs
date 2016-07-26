@@ -1,5 +1,5 @@
 (ns nativeparedit.test-core
-  (:require [cljs.test :refer-macros [deftest is testing run-tests]]
+  (:require [cljs.test :refer-macros [deftest is testing run-tests] :as test]
             [nativeparedit.core :as np]))
 
 
@@ -72,30 +72,47 @@
 
 ;; TODO: spec.endedAt
 
+
+(set! js/saved_clj (clj->js []))
+(set! js/saved (clj->js []))
+
+(defn save [val]
+  (.push js/saved_clj val)
+  (.push js/saved (clj->js val))
+  val)
+
+
 ;; creating
 (defn create-results [results]
-  (doall (for [{:keys [result type]} results]
-           (let [actual (:actual result)
-                 expected (:expected result)
-                 spec (-> js/jasmine .getEnv .-currentSpec)]
-            ;  (println (str "result: " result))
-            ;  (println (str "type: " type))
-            ;  (println (str "actual " actual))
-            ;  (println (str "expected" expected))
-             (condp = type
-                    :error (let [e result]
-                             (set! js/ads (clj->js e))
-                             (set! js/ads2 actual)
-                             (.fail spec {:message (.-message actual)
-                                          :fileName (:file e)
-                                          :line (:line e)
-                                          :a (comment -> actual/rawStack)}))
-                    :pass (-> expected js/expect (.toEqual expected))
-                    :fail (-> (str actual) js/expect (.toEqual (str expected))))))))
+  (let [spec (-> js/jasmine .getEnv .-currentSpec)]
+    (doseq [{:keys [result type]} results]
+      (let [actual (:actual result)
+            expected (:expected result)
+            result (condp = type
+                          :error (js/jasmine.ExpectationResult.
+                                  (clj->js {:passed false
+                                            :fileName (:file result)
+                                            :message (.-message actual)
+                                            :trace {:stack (.-stack actual)}}))
+                          :fail (js/jasmine.ExpectationResult.
+                                 (clj->js {:passed false
+                                           :line (:line result)
+                                           :expected (str expected)
+                                           :actual (str actual)
+                                           :trace {:stack nil}
+                                           :message (str "Expected " expected ", but got " actual)}))
+                          :pass (js/jasmine.ExpectationResult.
+                                 (clj->js {:passed true
+                                           :expected (str expected)
+                                           :actual (str actual)
+                                           :trace {:stack nil}
+                                           :message "Passed"}))
+                          )]
+        (-> spec .-results_ (.addResult result))))))
 
 (defn create-all-specs []
   (doseq [s @specs]
-    (js/it (->> s :spec meta :name (str "should pass: ")) #(create-results (:results s)))))
+    (js/it (->> s :spec meta :name (str " should pass: ")) #(create-results (:results s)))))
 
 (defn create-suite! [suite]
   (js/describe (-> :ns suite str) create-all-specs))

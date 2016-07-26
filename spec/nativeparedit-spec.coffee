@@ -1,7 +1,12 @@
-nativeparedit = require "../plugin/lib/nativeparedit"
+path = require("path");
+process.chdir(__dirname + "/..")
+console.log(path.resolve("."))
+
+require(path.join(path.resolve("."),"out", "main.js"));
 
 jasmine.VERBOSE = true
-nativeparedit.run_tests()
+nativeparedit.test_core.run_tests()
+
 # env = jasmine.getEnv()
 # r = env.reporter
 # runner = env.currentRunner()

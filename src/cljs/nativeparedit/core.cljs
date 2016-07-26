@@ -3,7 +3,6 @@
 
 (nodejs/enable-util-print!)
 
-
 (def commands (.-commands js/atom))
 
 (defn active-editor []
@@ -123,5 +122,8 @@
           "deactivate" deactivate
           "run_tests" #(nativeparedit.test-core/run-tests)))
 
+(defn -main [& args]
+  (println "running main()"))
+
 ;; noop - needed for :nodejs CLJS build
-(set! *main-cli-fn* (constantly nil))
+(set! *main-cli-fn* (constantly 0))

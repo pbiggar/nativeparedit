@@ -1,7 +1,9 @@
 (ns nativeparedit.test-core
+  (:require-macros [jasmine.macros :refer [describe it expect]])
   (:require [cljs.test :refer-macros [deftest is testing] :as test]
             [atom-reporter]
-            [nativeparedit.core :as np]))
+            [nativeparedit.core :as np]
+            [clojure.string :as str]))
 
 (set! js/saved_clj (clj->js []))
 (set! js/saved (clj->js []))
@@ -11,43 +13,46 @@
   (.push js/saved (clj->js val))
   val)
 
-(deftest passing-test
-  (is (= (+ 1 1) 2)))
-
-(deftest has-failing-test
-  (is (= (+ 1 1) 3))
-  (is (= (+ 1 1) 2))
-  (is (= (+ 4 5) 6)))
-
-(deftest errors-testing
-  (is
-   (throw (js/Error. "bug!"))))
-;
-
 
 (defn split-test-string [s]
   (let [col (.indexOf s "|")
-        new-str (-> s (str/split "|") str/join)]
+        new-str (-> s (str/split #"\|") str/join)]
     [new-str col]))
 
-(defn editor-for-test [test]
-  (let [[string col] (split-test-string test)
-        ed (TextEditor.)]
-    (.setText ed string) ; todo add a bunch of different wrapping texts
-    (.setCursor ed [0, pos])
+(def -prolog "(defn x [] \n  ")
+(def -epilog "\n)")
+
+(defn wrap [text]
+  (str -prolog text -epilog))
+
+(defn unwrap [text]
+  (.substring text (.-length -prolog) (- (.-length text) (.-length -epilog))))
+
+(defn offset [size]
+  (+ size (.-length -prolog)))
+
+(defn unoffset [size]
+  (- size (.-length -prolog)))
+
+(defn editor-for-test [initial]
+  (let [[string col] (split-test-string initial)
+        ed (. js/atom.workspace getActiveTextEditor)]
+    (.setText ed (wrap string)) ; todo add a bunch of different wrapping texts
+    (.setCursorBufferPosition ed [0, (offset col)])
     ed))
 
-(defn run-test []
-  (doseq [[initial expected] np/dq-test
-          [expected-result expected-col] (np/splitTestString expected)
+(defn run-test [data f]
+  (doseq [[initial expected] data]
+    (let [[expected-result expected-col] (split-test-string expected)
           ed (editor-for-test initial)]
+      (binding [np/active-editor (fn [] ed)]
+               (f)
+               (expect (= (-> ed .getText unwrap) expected-result))
+               (expect (= (-> ed .getCursorBufferPosition save .-column unoffset) expected-col))))))
 
-    (binding [active-editor (fn [] ed)]
+(defn run_tests []
 
-             (np/doublequote)
-             (is (= expected-string (.getText ed)))
-             (is (= expected-col (-> ed .getCursorBufferPosition .col))))))
-
-
-(defn run_tests [callback]
-  (test/run-tests))
+  (describe "doublequote"
+            (js/beforeEach (fn [] (js/waitsForPromise (fn [] (js/atom.workspace.open "a.clj")))))
+            (it "should match expected data"
+                (run-test np/dq-test np/doublequote))))

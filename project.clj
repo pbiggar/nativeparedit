@@ -15,7 +15,7 @@
   :cljsbuild
   {:builds
    [{:id :plugin
-     :source-paths ["src/cljs" "test/cljs"]
+     :source-paths ["src/cljs" "test/cljs" "test/clj"]
      :compiler {:optimizations :none
                 :target :nodejs
 ;                :hashbang false

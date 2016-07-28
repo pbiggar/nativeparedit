@@ -3,10 +3,15 @@
 
 (nodejs/enable-util-print!)
 
-(def commands (.-commands js/atom))
 
-(defn active-editor []
-  (-> js/atom .workspace .getActiveEditor))
+(defn save [val]
+  (.push js/saved_clj val)
+  (.push js/saved (clj->js val))
+  val)
+
+(def ^:dynamic active-editor ; for testing
+  (fn []
+    (-> js/atom .workspace .getActiveEditor)))
 
 (defn open-round []
   (insert)
@@ -26,27 +31,25 @@
   nil)
 
 (def dq-test
-  [["\"asd | asdas\"" "\"asd \"| asdas\""]
+  [["\"open string with no close|" "\"open string with no close\"|"]
+   ["\"asd | asdas\"" "\"asd \"| asdas\""]
    ["\"|\"" "\"\"|"]
-   ["\"open string with no close|" "\"open string with no close\"|"]
    ["(a b c |d e)" "(a b c \"|\" d e)"]
    ["(a b c| d e)" "(a b c \"|\" d e)"]
    ["|\"\"" "\"|\""]])
 
 (defn in-string? [cursor]
-  (let [scope (.getScopeDescriptor ed)]
-    (.log js/console scope)
+  (let [scope (.getScopeDescriptor cursor)]
     false))
 
 (defn surrounding-chars [cursor]
   "ad")
 
 (defn doublequote [_]
-  (.log js/console "doublequote")
-  (let [ed (getActiveEditor)
+  (let [ed (active-editor)
         cursor (.getLastCursor ed)
-        str? (inString? cursor)
-        [prev next] (surroundingChars cursor)]
+        str? (in-string? cursor)
+        [prev next] (surrounding-chars cursor)]
 
     (cond ed
       (= next "\"") (moveCursorForward ed 1)
@@ -110,11 +113,11 @@
 
 
 (defn activate [state]
-  (.log js/console "Activating paredit")
-  (.add commands "atom-workspace" "nativeparedit:doublequote", doublequote))
+  (println "Activating paredit")
+  (.add js/atom.commands "atom-workspace" "nativeparedit:doublequote", doublequote))
 
 (defn deactivate [state]
-  (.log js/console "Deactivating from paredit"))
+  (println "Deactivating from paredit"))
 
 
 (set! js/module.exports

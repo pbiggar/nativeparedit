@@ -5,6 +5,7 @@
 
 
 (defn save [val]
+  (println (str "saving: " val))
   (.push js/saved_clj val)
   (.push js/saved (clj->js val))
   val)
@@ -45,17 +46,23 @@
 (defn surrounding-chars [cursor]
   "ad")
 
+(defn move-cursor-forward! [ed c]
+  (-> ed (.moveRight c)))
+
+(defn insert-text! [ed c text]
+  (-> ed .getBuffer (.insert (.getBufferPosition c) text)))
+
+
 (defn doublequote [_]
   (let [ed (active-editor)
         cursor (.getLastCursor ed)
         str? (in-string? cursor)
         [prev next] (surrounding-chars cursor)]
-
-    (cond ed
-      (= next "\"") (moveCursorForward ed 1)
-      str? (do (insert ed "\"") (moveCursorForward ed 1))
-      (= next " " (do insert ed " \"\"") (moveCursorForward ed 2))
-      :else (do (insert ed "\"\" ") (moveCursorForward ed 1)))))
+    (cond
+      (= next "\"") (move-cursor-forward! ed 1)
+      str? (do (insert-text! ed cursor "\"") (move-cursor-forward! ed 1))
+      (= next " " (do (insert-text! ed cursor " \"\"")) (move-cursor-forward! ed 2))
+      (do (insert-text! ed cursor "\"\" ") (move-cursor-forward! ed 1)))))
 
 (defn newline []
   nil)

@@ -15,4 +15,4 @@
               (= '= a) (list 'toEqual c)
               :else (list 'throw (list 'js/Error. "TODO")))
         exp (concat (list '. (list 'js/expect b)) exp)]
-    `(do (println '~a) (println '~exp) ~exp)))
+    `(do ~exp)))

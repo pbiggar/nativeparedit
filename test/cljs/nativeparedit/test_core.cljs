@@ -11,6 +11,7 @@
 (defn save [val]
   (.push js/saved_clj val)
   (.push js/saved (clj->js val))
+  (println (str "saving: " val))
   val)
 
 
@@ -19,8 +20,8 @@
         new-str (-> s (str/split #"\|") str/join)]
     [new-str col]))
 
-(def -prolog "(defn x [] \n  ")
-(def -epilog "\n)")
+(def -prolog "(defn x [] ")
+(def -epilog ")")
 
 (defn wrap [text]
   (str -prolog text -epilog))
@@ -38,7 +39,7 @@
   (let [[string col] (split-test-string initial)
         ed (. js/atom.workspace getActiveTextEditor)]
     (.setText ed (wrap string)) ; todo add a bunch of different wrapping texts
-    (.setCursorBufferPosition ed [0, (offset col)])
+    (.setCursorBufferPosition ed #js[0, (offset col)])
     ed))
 
 (defn run-test [data f]
@@ -48,10 +49,9 @@
       (binding [np/active-editor (fn [] ed)]
                (f)
                (expect (= (-> ed .getText unwrap) expected-result))
-               (expect (= (-> ed .getCursorBufferPosition save .-column unoffset) expected-col))))))
+               (expect (= (-> ed .getCursorBufferPosition .-column unoffset) expected-col))))))
 
 (defn run_tests []
-
   (describe "doublequote"
             (js/beforeEach (fn [] (js/waitsForPromise (fn [] (js/atom.workspace.open "a.clj")))))
             (it "should match expected data"

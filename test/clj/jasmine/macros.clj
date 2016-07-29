@@ -5,8 +5,7 @@
 
 (defmacro it [description & test-forms]
   `(js/it ~description
-          (fn []
-            ~@test-forms)))
+          (fn [] ~@test-forms)))
 
 (defmacro expect [arg]
   (let [[a b & rest] arg

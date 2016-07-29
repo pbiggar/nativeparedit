@@ -39,15 +39,14 @@
    ["(a b c| d e)" "(a b c \"|\" d e)"]
    ["|\"\"" "\"|\""]])
 
-(defn in-string? [cursor]
-  (let [scope (.getScopeDescriptor cursor)]
-    false))
+(defn in-string? [ed cursor]
+  (let [scope (-> cursor .getScopeDescriptor .getScopesArray last)]
+    (= "string.quoted.double.clojure" scope)))
 
-(defn surrounding-chars [cursor]
-  "ad")
-
-(defn move-cursor-forward! [ed c]
-  (-> ed (.moveRight c)))
+(defn get-next-char [ed c]
+  (let [p (.getBufferPosition c)]
+    ;; todo use positionforcharacterindex
+    (.getTextInBufferRange ed (clj->js [p [(.-row p) (inc (.-column p))]]))))
 
 (defn insert-text! [ed c text]
   (-> ed .getBuffer (.insert (.getBufferPosition c) text)))
@@ -55,14 +54,16 @@
 
 (defn doublequote [_]
   (let [ed (active-editor)
-        cursor (.getLastCursor ed)
-        str? (in-string? cursor)
-        [prev next] (surrounding-chars cursor)]
+        cursor (save (.getLastCursor ed))
+        str? (save (in-string? ed cursor))
+        next (save (get-next-char ed cursor))]
     (cond
-      (= next "\"") (move-cursor-forward! ed 1)
-      str? (do (insert-text! ed cursor "\"") (move-cursor-forward! ed 1))
-      (= next " " (do (insert-text! ed cursor " \"\"")) (move-cursor-forward! ed 2))
-      (do (insert-text! ed cursor "\"\" ") (move-cursor-forward! ed 1)))))
+      (= next "\"") (.moveRight ed 1)
+      str? (insert-text! ed cursor "\"")
+      (= next " ") (do (insert-text! ed cursor " \"\"")
+                       (.moveLeft ed 1))
+      :else (do (insert-text! ed cursor "\"\" ")
+                (.moveLeft ed 2) ))))
 
 (defn newline []
   nil)

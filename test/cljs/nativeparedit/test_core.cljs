@@ -20,6 +20,9 @@
         new-str (-> s (str/split #"\|") str/join)]
     [new-str col]))
 
+(defn build-test-string [s col]
+  (str (.substring s 0 col) "|" (.substring s col)))
+
 (def -prolog "(defn x [] ")
 (def -epilog ")")
 
@@ -36,23 +39,33 @@
   (- size (.-length -prolog)))
 
 (defn editor-for-test [initial]
-  (let [[string col] (split-test-string initial)
+  (let [[string col] (save (split-test-string initial))
         ed (. js/atom.workspace getActiveTextEditor)]
     (.setText ed (wrap string)) ; todo add a bunch of different wrapping texts
-    (.setCursorBufferPosition ed #js[0, (offset col)])
+    (.setCursorBufferPosition ed #js[0, (save (offset col))])
     ed))
 
 (defn run-test [data f]
   (doseq [[initial expected] data]
-    (let [[expected-result expected-col] (split-test-string expected)
-          ed (editor-for-test initial)]
-      (binding [np/active-editor (fn [] ed)]
-               (f)
-               (expect (= (-> ed .getText unwrap) expected-result))
-               (expect (= (-> ed .getCursorBufferPosition .-column unoffset) expected-col))))))
+    (it (str "should match for " initial " -> " expected)
+        (let [ed (editor-for-test initial)]
+          (binding [np/active-editor (fn [] ed)]
+                   (f)
+                   (let [actual-text (-> ed .getText unwrap)
+                         actual-col (-> ed .getCursorBufferPosition .-column unoffset)]
+                     (expect (= (build-test-string actual-text actual-col) expected))))))))
 
 (defn run_tests []
   (describe "doublequote"
-            (js/beforeEach (fn [] (js/waitsForPromise (fn [] (js/atom.workspace.open "a.clj")))))
-            (it "should match expected data"
-                (run-test np/dq-test np/doublequote))))
+            (js/beforeEach
+             (fn []
+               (js/waitsForPromise
+                (fn []
+                  (js/atom.packages.activatePackage "language-clojure")))
+               (js/waitsForPromise
+                (fn []
+                  (js/atom.workspace.open "a.clj")))))
+            (it "should activate"
+                (expect (= true (js/atom.packages.isPackageLoaded "language-clojure")))
+                (expect (= true (js/atom.packages.isPackageActive "language-clojure"))))
+            (run-test np/dq-test np/doublequote)))

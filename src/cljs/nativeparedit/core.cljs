@@ -14,31 +14,6 @@
   (fn []
     (-> js/atom .workspace .getActiveEditor)))
 
-(defn open-round []
-  (insert)
-  nil)
-
-(defn close-round []
-  nil)
-
-(defn close-round-and-newline []
-  nil)
-
-
-(defn open-square []
-  nil)
-
-(defn close-square []
-  nil)
-
-(def dq-test
-  [["\"open string with no close|" "\"open string with no close\"|"]
-   ["\"asd | asdas\"" "\"asd \"| asdas\""]
-   ["\"|\"" "\"\"|"]
-   ["(a b c |d e)" "(a b c \"|\" d e)"]
-   ["(a b c| d e)" "(a b c \"|\" d e)"]
-   ["|\"\"" "\"|\""]])
-
 (defn in-string? [ed cursor]
   (let [scope (-> cursor .getScopeDescriptor .getScopesArray last)]
     (= "string.quoted.double.clojure" scope)))
@@ -51,6 +26,33 @@
 (defn insert-text! [ed c text]
   (-> ed .getBuffer (.insert (.getBufferPosition c) text)))
 
+
+(defn open-round []
+  nil)
+
+(defn close-round []
+  nil)
+
+(defn close-round-and-newline []
+  nil)
+
+(defn open-square []
+  nil)
+
+(defn close-square []
+  nil)
+
+
+
+
+
+(def doublequote-test
+  [["\"open string with no close|" "\"open string with no close\"|"]
+   ["\"asd | asdas\"" "\"asd \"| asdas\""]
+   ["\"|\"" "\"\"|"]
+   ["(a b c |d e)" "(a b c \"|\" d e)"]
+   ["(a b c| d e)" "(a b c \"|\" d e)"]
+   ["|\"\"" "\"|\""]])
 
 (defn doublequote [_]
   (let [ed (active-editor)
@@ -65,7 +67,7 @@
       :else (do (insert-text! ed cursor "\"\" ")
                 (.moveLeft ed 2) ))))
 
-(defn newline []
+(defn -newline []
   nil)
 
 (defn forward-delete []

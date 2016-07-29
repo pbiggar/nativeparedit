@@ -1,7 +1,6 @@
 (ns nativeparedit.test-core
   (:require-macros [jasmine.macros :refer [describe it expect]])
   (:require [cljs.test :refer-macros [deftest is testing] :as test]
-            [atom-reporter]
             [nativeparedit.core :as np]
             [clojure.string :as str]))
 
@@ -68,4 +67,4 @@
             (it "should activate"
                 (expect (= true (js/atom.packages.isPackageLoaded "language-clojure")))
                 (expect (= true (js/atom.packages.isPackageActive "language-clojure"))))
-            (run-test np/dq-test np/doublequote)))
+            (run-test np/doublequote-test np/doublequote)))

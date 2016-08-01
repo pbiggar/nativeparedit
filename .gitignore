@@ -10,3 +10,4 @@ plugin/lib
 .lein-plugins/
 .repl
 .nrepl-port
+node_modules/

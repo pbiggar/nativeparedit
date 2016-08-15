@@ -4,32 +4,31 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/clojurescript "1.8.51"]]
+  :dependencies [[org.clojure/clojure "1.8.0"]
+                 [org.clojure/clojurescript "1.9.89"]]
 
-  :node-dependencies [[source-map-support "0.2.8"]]
+  :npm {:dependencies [[source-map-support "*"]]
+        :root :root}
 
   :clean-targets ["target" "out"
-                  "plugin/lib/nativeparedit.js"]
-  :plugins [[lein-cljsbuild "1.1.1"]]
+                  "plugin/lib/nativeparedit.js"
+                  "node_modules"]
+
+  :plugins [[lein-cljsbuild "1.1.1"]
+            [lein-npm "0.6.1"]]
+
   :cljsbuild
   {:builds
    [{:id :plugin
      :source-paths ["src/cljs" "test/cljs" "test/clj"]
      :compiler {:optimizations :none
                 :target :nodejs
-;                :hashbang false
+                :warnings {:single-segment-namespace false}
                 :pretty-print true
                 :main nativeparedit.test-core
-;                :cache-analysis true
-;                :source-map-support true
-;                :parallel-build true
-;                :language-in :ecmascript5
-;                :language-out :ecmascript5
+                :cache-analysis true
+                :source-map true
+                :parallel-build true
                 :output-dir "out"
                 :output-to "out/main.js"}}
-    ]}
-  ; :profiles {:dev {:source-paths ["src/dev"]
-  ;                  :dependencies [[thheller/shadow-build "1.0.207"]
-  ;                                 [thheller/shadow-devtools "0.1.35"]]}}
-  )
+    ]})
